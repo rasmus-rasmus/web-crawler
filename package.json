@@ -1,0 +1,23 @@
+{
+  "name": "web-crawler",
+  "version": "1.0.0",
+  "description": "Guided project from boot.dev.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rasmus-rasmus/web-crawler.git"
+  },
+  "author": "Rasmus Stavenuiter",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rasmus-rasmus/web-crawler/issues"
+  },
+  "homepage": "https://github.com/rasmus-rasmus/web-crawler#readme",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
