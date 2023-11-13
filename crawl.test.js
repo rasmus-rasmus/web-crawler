@@ -1,10 +1,18 @@
-const { normalizeURL } = require('./crawl.js');
+const { normalizeURL, getURLsFromHTML } = require('./crawl.js');
 
+
+/////////////
+// HELPERS //
+/////////////
 
 function compareNormalizedToExpected(inputUrl, expectedUrl) {
     expect(normalizeURL(inputUrl)).toBe(expectedUrl);
 }
 
+
+/////////////////////////
+// NORMALIZE URL TESTS //
+/////////////////////////
 
 test('http', () => {
     const inputUrl = 'http://my.test';
@@ -72,4 +80,31 @@ test('invalid url', () => {
     const inputUrl = '/thisisnot/avalidurl';
     const expectedUrl = null;
     compareNormalizedToExpected(inputUrl, expectedUrl);
+})
+
+
+//////////////////////////////
+// GET URLS FROM HTML TESTS //
+//////////////////////////////
+
+test('absolute url', () => {
+    const htmlBody = '<a href=https://web.site>This is a web site</a>';
+    const baseURL = 'https://other.web.site';
+    const expected = ['https://web.site/'];
+    expect(getURLsFromHTML(htmlBody, baseURL)).toEqual(expected);
+})
+
+test('relative url', () => {
+    const htmlBody = '<a href=/relative/url>Relative</a>'
+    const baseURL = 'https://the.base';
+    const expected = ['https://the.base/relative/url'];
+    expect(getURLsFromHTML(htmlBody, baseURL)).toEqual(expected);
+})
+
+test('all urls', () => {
+    const htmlBody = `<a href=https://absolute.url>Absolute</a> 
+                      <a href=/relative/url>Relative</a>`;
+    const baseURL = 'https://the.base';
+    const expected = ['https://absolute.url/', baseURL+'/relative/url'];
+    expect(getURLsFromHTML(htmlBody, baseURL)).toEqual(expected);
 })
