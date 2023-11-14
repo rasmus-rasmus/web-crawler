@@ -21,13 +21,15 @@ function getURLsFromHTML(htmlBody, baseURL) {
     const aTagElements = dom.window.document.querySelectorAll('a');
     const urlsOut = [];
     for (aTag of aTagElements) {
-        const url = aTag.href;
+        if (aTag.href.length === 0) {
+            continue;
+        }
         if (aTag.href[0] === '/') {
             // relative url
             try {
                 urlsOut.push(new URL(aTag.href, baseURL).href);
             } catch (err) {
-                console.log(`${err.message}: ${aTag.href}`);
+                console.log(`Relative url ${aTag.href} failed with message: ${err.message}`);
             }
         }
         else {
@@ -35,30 +37,54 @@ function getURLsFromHTML(htmlBody, baseURL) {
             try {
                 urlsOut.push(new URL(aTag.href).href);
             } catch (err) {
-                console.log(`${err.message}: ${aTag.href}`);
+                console.log(`Absolute url ${aTag.href} failed with message: ${err.message}`);
             }
         }
     }
     return urlsOut;
 }
 
-async function crawlPage(baseUrl, url, pages) {
-    let htmlBody;
+async function crawlPage(baseUrl, currentUrl, pages) {
     try {
-        const response = await fetch(baseUrl);
+        const currentUrlObj = new URL(currentUrl);
+        const baseUrlObj = new URL(baseUrl);
+        if (currentUrlObj.host != baseUrlObj.host) {
+            return pages;
+        }
+    } catch (err) {
+        console.log(`Error when parsing ${currentUrl}: ${err.message}`);
+        return pages;
+    }
+    
+    const normalizedUrl = normalizeURL(currentUrl);
+    if (pages.hasOwnProperty(`${normalizedUrl}`)) {
+        pages[`${normalizedUrl}`] += 1;
+        return pages;
+    } else {
+        pages[`${normalizedUrl}`] = baseUrl === currentUrl ? 0 : 1;
+    }
+    
+    try {
+        console.log(`Crawling ${normalizedUrl}...`);
+        const response = await fetch(currentUrl);
         if (response.status >= 400) {
             console.log(`Got an error status code: ${response.status}`);
-            return
+            return pages
         }
         else if (!response.headers.get('content-type').includes('text/html')) {
             console.log(`Unsupported content type: ${response.headers.get('content-type')}`);
-            return
+            return pages
         }
-        htmlBody = await response.text();
+        const htmlBody = await response.text();
+        const urlsInResponse = getURLsFromHTML(htmlBody, currentUrl);
+        for (newUrl of urlsInResponse) {
+            pages = await crawlPage(baseUrl, newUrl, pages);
+        }
+        return pages;
     } catch (err) {
         console.log(`Failed to fetch url: ${err.message}`);
+        return pages
     }
-    console.log(htmlBody);
 }
 
 module.exports = {
