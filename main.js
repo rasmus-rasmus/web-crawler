@@ -1,11 +1,15 @@
 const { JSDOM } = require('jsdom');
-const { getURLsFromHTML } = require('./crawl.js');
+const { crawlPage } = require('./crawl.js');
+const { argv } = require('node:process');
 
-
-
-
-const dom = new JSDOM('<a href=https://google.com>this is an anchor tag</a>');
-
-for (ulr of getURLsFromHTML('<a href=https://google.com>this is an anchor tag</a>', 'https://google.com')) {
-    console.log(ulr);
+// print process.argv
+function main() {
+    if (argv.length !== 3) {
+        console.log("Error: accepts only one command line argument.");
+        return;
+    }
+    const baseUrl = argv[2];
+    crawlPage(baseUrl, '', {});
 }
+
+main();

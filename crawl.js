@@ -42,7 +42,27 @@ function getURLsFromHTML(htmlBody, baseURL) {
     return urlsOut;
 }
 
+async function crawlPage(baseUrl, url, pages) {
+    let htmlBody;
+    try {
+        const response = await fetch(baseUrl);
+        if (response.status >= 400) {
+            console.log(`Got an error status code: ${response.status}`);
+            return
+        }
+        else if (!response.headers.get('content-type').includes('text/html')) {
+            console.log(`Unsupported content type: ${response.headers.get('content-type')}`);
+            return
+        }
+        htmlBody = await response.text();
+    } catch (err) {
+        console.log(`Failed to fetch url: ${err.message}`);
+    }
+    console.log(htmlBody);
+}
+
 module.exports = {
     normalizeURL,
-    getURLsFromHTML
+    getURLsFromHTML,
+    crawlPage
 }
